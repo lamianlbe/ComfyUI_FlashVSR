@@ -7,6 +7,7 @@ import os
 from .model_loader_utils import  tensor_upscale,load_images_list,get_video_files
 from .FlashVSR.examples.WanVSR.infer_flashvsr_full import init_pipeline,run_inference
 from .FlashVSR.examples.WanVSR.infer_flashvsr_tiny import   init_pipeline_tiny,run_inference_tiny
+from .FlashVSR.examples.WanVSR.infer_flashvsr_tiny_long_video import init_pipeline_long,run_inference_tiny_long
 import folder_paths
 from typing_extensions import override
 from comfy_api.latest import ComfyExtension, io
@@ -43,13 +44,14 @@ class FlashVSR_SM_Model(io.ComfyNode):
                 io.Combo.Input("emb_pt",options= ["none"] + [i for i in folder_paths.get_filename_list("FlashVSR") if "prompt" in i.lower()]),
                 io.Combo.Input("vae",options= ["none"] + folder_paths.get_filename_list("vae") ),
                 io.Combo.Input("tcd_encoder",options= ["none"] + [i for i in folder_paths.get_filename_list("FlashVSR") if "tcd" in i.lower()] ),
+                io.Boolean.Input("tiny_long", default=False),
             ],
             outputs=[
                 io.Custom("FlashVSR_SM_Model").Output(),
                 ],
             )
     @classmethod
-    def execute(cls, dit,proj_pt,emb_pt,vae,tcd_encoder) -> io.NodeOutput:
+    def execute(cls, dit,proj_pt,emb_pt,vae,tcd_encoder,tiny_long) -> io.NodeOutput:
         dit_path=folder_paths.get_full_path("FlashVSR", dit) if dit != "none" else None
         proj_pt_path=folder_paths.get_full_path("FlashVSR", proj_pt) if proj_pt != "none" else None
         vae_path=folder_paths.get_full_path("vae", vae) if vae != "none" else None
@@ -58,10 +60,15 @@ class FlashVSR_SM_Model(io.ComfyNode):
         assert prompt_path is not None  , "Please select the emb"
         assert dit_path is not None and proj_pt is not None , "Please select the Sdit,proj_pt,checkpoint file"
         assert vae_path is not None or tcd_encoder_path is not None , "Please select the Sdit,proj_pt,checkpoint file"
-        if vae_path is None and tcd_encoder_path is not None:
-            model=init_pipeline_tiny(prompt_path,proj_pt_path,dit_path, tcd_encoder_path, device="cuda")
-        else:
+        if tcd_encoder_path is not None:
+            if tiny_long:
+                model=init_pipeline_long(prompt_path,proj_pt_path,dit_path, tcd_encoder_path, device="cuda")
+            else:
+                model=init_pipeline_tiny(prompt_path,proj_pt_path,dit_path, tcd_encoder_path, device="cuda")
+        elif vae_path is not None :
             model=init_pipeline(prompt_path,proj_pt_path,dit_path, vae_path, device="cuda")
+        else:
+            raise Exception("Please select the vae or tcd_encoder")
         return io.NodeOutput(model)
     
 
@@ -98,8 +105,12 @@ class FlashVSR_SM_KSampler(io.ComfyNode):
         image=tensor_upscale(image,width, height)
        
         if hasattr(model,"TCDecoder") :
-            print("infer tiny mode")
-            images=run_inference_tiny(model,image,seed,scale,kv_ratio,local_range,steps,cfg,sparse_ratio,color_fix,fix_method,split_num )
+            if model.long_mode:
+                print("infer tiny long mode")
+                images=run_inference_tiny_long(model,image,seed,scale,kv_ratio,local_range,steps,cfg,sparse_ratio,color_fix,fix_method,split_num )
+            else:
+                print("infer tiny mode")
+                images=run_inference_tiny(model,image,seed,scale,kv_ratio,local_range,steps,cfg,sparse_ratio,color_fix,fix_method,split_num )
         else:
             print("infer full mode")
             images=run_inference(model,image,seed,scale,kv_ratio,local_range,steps,cfg,sparse_ratio,full_tiled,color_fix,fix_method,split_num )
