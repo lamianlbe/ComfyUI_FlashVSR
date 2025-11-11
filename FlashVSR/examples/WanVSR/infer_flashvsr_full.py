@@ -259,7 +259,7 @@ def init_pipeline(prompt_path,LQ_proj_in_path="./FlashVSR/LQ_proj_in.ckpt",ckpt_
             elif os.path.basename(decode_vae).split(".")[0]=="taew2_1":
                 from ...vae_tiny import WanVAE_tiny
                 print("use vae_tiny decoder")
-                VAE = WanVAE_tiny(vae_path=vae_path,dtype=torch.bfloat16,device=device,need_scaled=False)
+                VAE = WanVAE_tiny(vae_path=decode_vae,dtype=torch.bfloat16,device=device,need_scaled=False)
             elif os.path.basename(decode_vae).split(".")[0]=="lighttaew2_1":
                 from ...vae_tiny import WanVAE_tiny
                 print("use vae_tiny light decoder")
