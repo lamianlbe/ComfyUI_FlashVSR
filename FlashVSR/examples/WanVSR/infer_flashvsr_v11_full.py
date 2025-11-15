@@ -220,6 +220,7 @@ def init_pipeline_v11(prompt_path,LQ_proj_in_path="./FlashVSR/LQ_proj_in.ckpt",c
     mm = ModelManager(torch_dtype=torch.bfloat16, device="cpu")
     mm.load_models([ckpt_path,vae_path,])
     new_decoder=True if decode_vae!="none"  else False
+    pipe = FlashVSRFullPipeline.from_model_manager(mm, device="cuda")
     if new_decoder:
         pipe.new_decoder = True
         if "light" in decode_vae.lower() or "tae" in decode_vae.lower():
@@ -247,7 +248,7 @@ def init_pipeline_v11(prompt_path,LQ_proj_in_path="./FlashVSR/LQ_proj_in.ckpt",c
             VAE.load_state_dict(vae_dict,strict=False)
             pipe.VAE=VAE
             del vae_dict
-    pipe = FlashVSRFullPipeline.from_model_manager(mm, device="cuda")
+    
     pipe.denoising_model().LQ_proj_in = Causal_LQ4x_Proj(in_dim=3, out_dim=1536, layer_num=1).to("cuda", dtype=torch.bfloat16)
     #LQ_proj_in_path = "./FlashVSR-v1.1/LQ_proj_in.ckpt"
     if os.path.exists(LQ_proj_in_path):
