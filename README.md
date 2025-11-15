@@ -2,6 +2,8 @@
 [FlashVSR](https://github.com/OpenImagingLab/FlashVSR): Towards Real-Time Diffusion-Based Streaming Video Super-Resolution,this node ,you can use it in comfyUI
 
 # Upadte
+* fix a bug（full 1.1），upload a simple split bat for the window environment，Note that input frames will only be cropped if they meet the "8n-3" criteria, such as 69,77, 85...  
+* 修复一个bug（full 1.1），上传一个简易的window环境的分割bat，注意，输入帧只有在满足“8n-3”时，才不会被剪裁帧，比如77、85....
 * update to version v1.1 /更新适配1.1版本的新模型和代码,降低闪烁，提高保真度和稳定性
 * add full mode [lightx2v vae encoder](https://huggingface.co/lightx2v/Autoencoders/tree/main) support（only lightvaew2_1.pth,taew2_1.pth,lighttaew2_1.pth） and [Wan2.1-VAE-upscale2x](https://huggingface.co/spacepxl/Wan2.1-VAE-upscale2x) support    
 * 新增lightx2v 加速vae decoder支持和Wan2.1-VAE-upscale2x 放大decoder支持，只是在full 模式下有效，light的加速模型目前只支持（lightvaew2_1.pth  #32.2M,taew2_1.pth,lighttaew2_1.pth） 三个文件 
