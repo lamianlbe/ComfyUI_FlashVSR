@@ -26,13 +26,6 @@ device = torch.device(
     "mps") if torch.backends.mps.is_available() else torch.device(
     "cpu")
 
-weigths_FlashVSR_current_path = os.path.join(folder_paths.models_dir, "FlashVSR")
-if not os.path.exists(weigths_FlashVSR_current_path):
-    os.makedirs(weigths_FlashVSR_current_path)
-
-folder_paths.add_model_folder_path("FlashVSR", weigths_FlashVSR_current_path) #  FlashVSR dir
-
-
 class FlashVSR_SM_Model(io.ComfyNode):
     @classmethod
     def define_schema(cls):
