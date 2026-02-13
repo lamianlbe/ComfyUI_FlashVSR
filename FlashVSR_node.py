@@ -26,11 +26,36 @@ device = torch.device(
     "mps") if torch.backends.mps.is_available() else torch.device(
     "cpu")
 
-weigths_FlashVSR_current_path = os.path.join(folder_paths.models_dir, "FlashVSR")
-if not os.path.exists(weigths_FlashVSR_current_path):
-    os.makedirs(weigths_FlashVSR_current_path)
+model_type = "FlashVSR"
 
-folder_paths.add_model_folder_path("FlashVSR", weigths_FlashVSR_current_path) #  FlashVSR dir
+default_flashvsr_path = os.path.join(folder_paths.models_dir, model_type)
+if not os.path.exists(default_flashvsr_path):
+    try:
+        os.makedirs(default_flashvsr_path)
+    except Exception:
+        pass
+
+folder_paths.add_model_folder_path(model_type, default_flashvsr_path)
+
+checkpoint_paths = folder_paths.get_folder_paths("checkpoints")
+
+added_paths = {default_flashvsr_path}
+
+for ckpt_path in checkpoint_paths:
+    models_root = os.path.dirname(ckpt_path)
+    
+    target_path = os.path.join(models_root, model_type)
+    
+    if target_path not in added_paths:
+        if not os.path.exists(target_path):
+            try:
+                os.makedirs(target_path, exist_ok=True)
+            except OSError:
+                print(f"Warning: Failed to create folder {target_path}")
+                continue
+        
+        folder_paths.add_model_folder_path(model_type, target_path)
+        added_paths.add(target_path)
 
 class FlashVSR_SM_Model(io.ComfyNode):
     @classmethod
